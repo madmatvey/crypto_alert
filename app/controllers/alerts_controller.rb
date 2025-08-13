@@ -40,9 +40,8 @@ class AlertsController < ApplicationController
   def update
     if @alert.update(alert_params)
       respond_to do |format|
-        format.html { redirect_to @alert, notice: "Alert was successfully updated." }
+        format.html { redirect_to alerts_path, notice: "Alert was successfully updated." }
         format.json { render json: @alert, status: :ok }
-        format.turbo_stream
       end
     else
       respond_to do |format|
@@ -57,7 +56,6 @@ class AlertsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to alerts_url, notice: "Alert was successfully destroyed." }
       format.json { head :no_content }
-      format.turbo_stream
     end
   end
 

@@ -40,9 +40,8 @@ class NotificationChannelsController < ApplicationController
   def update
     if @notification_channel.update(notification_channel_params)
       respond_to do |format|
-        format.html { redirect_to @notification_channel, notice: "Channel was successfully updated." }
+        format.html { redirect_to notification_channels_path, notice: "Channel was successfully updated." }
         format.json { render json: @notification_channel, status: :ok }
-        format.turbo_stream
       end
     else
       respond_to do |format|
@@ -57,7 +56,6 @@ class NotificationChannelsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to notification_channels_url, notice: "Channel was successfully destroyed." }
       format.json { head :no_content }
-      format.turbo_stream
     end
   end
 

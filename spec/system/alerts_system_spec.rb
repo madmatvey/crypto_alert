@@ -41,4 +41,36 @@ RSpec.describe 'Alerts', type: :system do
       expect(page).to have_content('12345.67')
     end
   end
+
+  it 'updates an alert and redirects to index with flash' do
+    alert = create(:alert, symbol: 'BTCUSDT', direction: :up, threshold_price: 10000, active: true)
+
+    visit alerts_path
+    within("#alert_#{alert.id}") do
+      click_on 'Edit'
+    end
+
+    uncheck 'Active'
+    click_on 'Update Alert'
+
+    expect(page).to have_current_path(alerts_path, ignore_query: true)
+    expect(page).to have_content('Alert was successfully updated.')
+  end
+
+  it 'deletes an alert and redirects to index with flash' do
+    alert = create(:alert, symbol: 'ETHUSDT', direction: :down, threshold_price: 1500, active: true)
+
+    visit alerts_path
+    expect(page).to have_selector("#alert_#{alert.id}")
+
+    accept_confirm do
+      within("#alert_#{alert.id}") do
+        click_on 'Delete'
+      end
+    end
+
+    expect(page).to have_current_path(alerts_path, ignore_query: true)
+    expect(page).to have_content('Alert was successfully destroyed.')
+    expect(page).not_to have_selector("#alert_#{alert.id}")
+  end
 end
