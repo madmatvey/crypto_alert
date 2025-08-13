@@ -1,94 +1,79 @@
-# Task: Crypto Alert Notification Service (specification.md)
+# Task: Browser & Telegram Notifications, Symbol Validation, Current Price, Dark Theme
 
 ## Description
-Implement a Rails 8 application that lets a user create crypto price alerts, manage notification channels, and receive notifications when thresholds are crossed. Prices come from the Binance API. Background price checking must use Sidekiq (no ActiveJob usage in app code). Provide REST APIs and a minimal UI. Deliver with RSpec test coverage per the spec.
+Add browser notifications, Telegram message delivery, validate symbols via Binance before saving alerts, display current price for active alert symbols, and apply a Binance-styled dark theme.
 
 ## Complexity
 Level: 3
 Type: Feature
 
 ## Technology Stack
-- Framework: Rails 8
-- Language: Ruby (from `.ruby-version`)
-- Database: PostgreSQL
-- Background jobs: Sidekiq + Redis (no ActiveJob usage in app code)
+- Framework: Rails 8 (Hotwire: Turbo + Stimulus)
+- Background jobs: Sidekiq + Redis
+- Network: Faraday (Binance, Telegram)
+- Realtime: Turbo Streams (ActionCable)
 - Mail: ActionMailer
-- HTTP client: Faraday
-- Test: RSpec, Capybara, FactoryBot, Faker, Shoulda-Matchers
-- Lint: RuboCop (rails-omakase)
-- Frontend: Hotwire (Turbo, Stimulus)
+- Lint/Test: RuboCop, RSpec
 
 ## Technology Validation Checkpoints
-- [x] Gems added/installed: sidekiq, redis, rspec-rails, factory_bot_rails, faker, shoulda-matchers, faraday, sidekiq-cron
-- [x] Sidekiq configured (initializer, Redis URL), web UI available in development
-- [x] Hello-world Sidekiq worker runs
-- [x] RSpec installed and `bundle exec rspec` runs
-- [x] Mailer test adapter configured; config validated
-- [x] Ensure Solid Queue is not used for background jobs
+- [ ] Turbo Streams broadcast/subscribe path defined
+- [ ] Stimulus controller for Notification API hooked to stream target
+- [ ] Telegram HTTP call (Faraday) verified with stub
+- [ ] No additional gems required; config works in dev/test
 
 ## Status
 - [x] Initialization complete
 - [x] Planning complete
-- [x] Creative complete
-- [x] Technology validation complete
-- [x] Implementation complete
-- [x] Reflection complete
-- [x] Archiving complete
-
-## Archive
-- **Archive Document:** `memory-bank/archive/archive-crypto-alert-notification-service.md`
-- **Status:** COMPLETED
-- **Completion Date:** 2025-08-13
+- [ ] Creative complete
+- [ ] Technology validation complete
+- [ ] Implementation complete
+- [ ] Reflection complete
+- [ ] Archiving complete
 
 ## Implementation Plan
-1. Setup tests and background job infrastructure
-   - Add required gems; bundle install
-   - Install RSpec; configure Shoulda Matchers
-   - Add Sidekiq initializer and config; verify worker runs
-2. Data models and migrations
-   - Create `Alert(symbol, direction, threshold_price, active:boolean)`; validations; enum for direction {up, down}
-   - Create `NotificationChannel(kind, settings:jsonb, enabled:boolean)`; validations
-   - Create `AlertNotification(alert_id, notification_channel_id, delivered_at)`
-3. Services
-   - `BinanceClient#get_price(symbol)` returning BigDecimal or nil
-   - `PriceChecker#triggered?(alert, current_price)`
-   - `NotificationDispatcher#dispatch(alert, current_price)`
-     - Log channel: append to `log/alerts.log`
-     - Email channel: send via ActionMailer
-4. Sidekiq workers and scheduling
-   - `PriceCheckWorker` checks a single alert and dispatches
-   - `PollActiveAlertsWorker` enqueues checks for all active alerts
-   - Configure periodic schedule via `sidekiq-cron` (every 1 min) for polling
-5. API endpoints
-   - Alerts: index, create, update, destroy
-   - Channels: index, create, update, destroy
-6. UI (Hotwire)
-   - Alerts list + form; activate/deactivate toggle
-   - Channels list + form; edit/delete
-7. Testing
-   - Model specs for validations and associations
-   - Service specs for `BinanceClient`, `PriceChecker`, `NotificationDispatcher`
-   - Request specs for Alerts and Channels APIs
-   - Feature specs for basic UI flows
-   - Stub external calls and mail delivery
-8. Edge cases
-   - Handle invalid symbols and API errors
-   - Multiple alerts for the same symbol handled independently
-   - Threshold crossed at creation: do not trigger immediately; only on subsequent crossing
+1) Notification channels
+   - Extend `NotificationChannel` kinds: add `browser`, `telegram`
+   - Validations:
+     - `browser`: no extra settings
+     - `telegram`: require `bot_token`, `chat_id`
+   - Update form examples in `app/views/notification_channels/_form.html.erb`
+   - Update `NotificationDispatcher` to support `:browser` and `:telegram`
+   - Add `TelegramNotifier` service using Faraday
+   - Add Turbo Stream broadcast for browser notifications
 
-## Creative Phases — Decisions
-- Architecture (scheduling): sidekiq-cron every 1 minute; batch poller enqueues per-alert checks
-  - See: `memory-bank/creative/creative-architecture-scheduling.md`
-- Data Model (channel settings): JSONB + per-kind model validation (`log_file`, `email`)
-  - See: `memory-bank/creative/creative-data-model-notification-channel-settings.md`
-- UI/UX (forms and layout): Standard CRUD pages with Turbo enhancements; accessible forms
-  - See: `memory-bank/creative/creative-uiux-alerts-and-channels.md`
+2) Symbol validation (Binance)
+   - `Alert` model: `validate :binance_symbol_exists, on: :create` using `BinanceClient#get_price`
+   - Error message: `symbol is invalid`
+
+3) Current price display
+   - Show `last_price` on `alerts#index` (add column to table and partial)
+   - Ensure `PriceCheckWorker` persists `last_price` (already implemented)
+
+4) Browser notifications UI
+   - `alerts#index`: add `turbo_stream_from "browser_notifications"` and a target container with `data-controller="browser-notifications"`
+   - Stimulus controller `browser_notifications_controller.js`:
+     - Request `Notification` permission
+     - On element connect, read `data-*` attributes and show `new Notification(title, { body })`, then remove element
+   - Server: broadcast an append of a small `<div>` with the data attributes when an alert triggers
+
+5) Dark theme
+   - Update `app/assets/stylesheets/application.css` with dark palette (background #0B0E11, text #EAECEF, accent #F0B90B)
+   - Style tables, buttons, links accordingly
+
+6) Tests
+   - `spec/services/telegram_notifier_spec.rb`: stub Faraday; expect POST to Telegram API
+   - `spec/models/notification_channel_spec.rb`: validations for telegram/browser
+   - `spec/models/alert_spec.rb`: symbol validation (stub BinanceClient)
+   - `spec/services/notification_dispatcher_spec.rb`: dispatch routes for new kinds (stubs)
+
+## Creative Phases Required
+- UI/UX: Dark theme palette, button/table styling, notification behavior copy
+- Architecture: Naming for streams/Stimulus events (lightweight)
 
 ## Dependencies
-- sidekiq, redis, rspec-rails, factory_bot_rails, faker, shoulda-matchers, faraday, sidekiq-cron
+- Reuse: Faraday, Turbo/Stimulus (no new gems)
 
 ## Challenges & Mitigations
-- **Redis requirement**: document local setup and `REDIS_URL`; skip external Redis in CI by stubbing workers
-- **Binance API reliability**: add error handling and retries; stub in tests
-- **Email in dev/test**: use test delivery adapter, preview mailers
-- **Concurrency and rate limits**: batch polling and reasonable schedule
+- Browser notification permission may be denied: degrade gracefully (no-op)
+- Telegram token handling in settings: document security note; avoid logging secrets
+- Symbol validation costs a network call: perform only on create; stub in tests
