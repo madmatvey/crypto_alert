@@ -18,7 +18,7 @@ Type: Feature
 ## Technology Validation Checkpoints
 - [x] Turbo Streams broadcast/subscribe path defined
 - [x] Stimulus controller for Notification API hooked to stream target
-- [ ] Telegram HTTP call (Faraday) verified with stub
+- [x] Telegram HTTP call (Faraday) verified with stub
 - [x] No additional gems required; config works in dev/test
 
 ## Status
@@ -132,3 +132,60 @@ Type: Feature
   - All system specs pass headless locally and in CI
   - No flakiness: use Capybara expectations with waiting behavior; call `connect_turbo_cable_stream_sources` before assertions
   - No external network calls during tests
+
+## User Stories E2E Test Plan (Channels → Alerts → Notifications)
+
+- Scope
+  - Full flow from creating notification channels to receiving notifications when an alert threshold is crossed
+  - Run with Capybara + Selenium (headless), Sidekiq inline where needed, and no external network
+
+- Global Setup (per scenario where needed)
+  - Create channels via UI: browser ({}), log_file({path:"log/alerts.log",format:"plain"}), email({to:"alerts@example.com"}), telegram({bot_token:"TOKEN",chat_id:"123"})
+  - Ensure clean log file for assertions: truncate `log/alerts.log`
+
+- Stories & Acceptance Criteria
+  1) Create Channels (as user)
+     - Visit Channels → New Channel; create Browser, Log file, Email, Telegram
+     - Expect each to appear in Channels index and show page
+  2) Create Valid Alert (as user)
+     - Visit Alerts → New Alert; symbol BTCUSDT, direction Up, threshold 10000, active checked
+     - Stub `BinanceClient#get_price` to any numeric to pass validation
+     - Expect Alert row present on index
+  3) Invalid Symbol Rejected (as user)
+     - Stub `BinanceClient#get_price` => nil
+     - Attempt to create alert; expect validation error "Symbol is invalid"
+  4) Trigger Notifications (Up)
+     - Given alert: last_price=9900, threshold=10000, direction=up, active=true
+     - Stub `BinanceClient#get_price('BTCUSDT')` => 10000
+     - Run `PriceCheckWorker.perform(alert.id)` (Sidekiq inline or direct call)
+     - Expect:
+       - `AlertNotification.count` increased by number of enabled channels
+       - Log file appended with a line containing symbol and price
+       - `ActionMailer::Base.deliveries.size` increased by 1
+       - `TelegramNotifier` received `send_message` with expected text (stub instance)
+       - `alert.last_price` updated to 10000
+  5) Trigger Notifications (Down)
+     - Given alert: last_price=10100, threshold=10000, direction=down, active=true
+     - Stub current price => 10000; run worker
+     - Expect same channel dispatch assertions as (4)
+  6) Disabled Channel Not Notified
+     - Disable one channel via UI; run trigger like (4)
+     - Expect `AlertNotification` not created for disabled channel and no side-effect (e.g., no email added)
+  7) Browser Notification Signal (pragmatic)
+     - Because Stimulus removes the ephemeral node, verify via:
+       - DB side-effect: `AlertNotification` created for `browser` kind
+       - Optional: stub `Turbo::StreamsChannel.broadcast_append_to` and assert called once with expected target
+
+- Files
+  - `spec/system/user_stories/full_flow_system_spec.rb`
+
+- Stubbing & Helpers
+  - Binance: `allow_any_instance_of(BinanceClient).to receive(:get_price).and_return(BigDecimal('...'))`
+  - Telegram: `allow(TelegramNotifier).to receive(:new).and_return(instance_double(...))`
+  - Email: assert `ActionMailer::Base.deliveries`
+  - Log: read from `Rails.root.join('log/alerts.log')`
+  - Sidekiq: use `Sidekiq::Testing.inline!` within scenario blocks or call worker directly
+
+- Non-flaky Strategy
+  - Prefer assertions on persisted records (AlertNotification), mail deliveries, and file content over transient DOM for browser notifications
+  - Use Capybara’s waiting matchers for UI steps; avoid racing with ActionCable by deferring UI assertions until after worker run

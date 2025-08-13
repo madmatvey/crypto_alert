@@ -18,3 +18,5 @@
 - Build: Implemented browser and Telegram notifications, Binance symbol validation, current price column, and dark theme; tests and lint green at 2025-08-13T10:16:35Z
 - Plan: Added System Test Plan for Capybara+Selenium, Rails 8, RSpec, and Turbo Streams at 2025-08-13T10:25:47Z
 - Plan QA (System Tests): PASS — scenarios, setup, files, stubbing, and acceptance criteria documented; proceed to IMPLEMENT at 2025-08-13T10:26:55Z
+- Plan: Added E2E User Stories test plan (channels→alerts→notifications) to tasks.md at 2025-08-13T10:37:14Z
+- VAN QA: PASS — E2E user stories plan validated; Capybara/Selenium configured; test suite green at 2025-08-13T10:38:08Z
