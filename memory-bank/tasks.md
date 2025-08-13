@@ -81,3 +81,54 @@ Type: Feature
 - Browser notification permission may be denied: degrade gracefully (no-op)
 - Telegram token handling in settings: document security note; avoid logging secrets
 - Symbol validation costs a network call: perform only on create; stub in tests
+
+## System Test Plan (Capybara + Selenium)
+
+- Setup
+  - Driver: Selenium with headless Chrome (Capybara) for `type: :system`
+  - Include Turbo SystemTest helper: use `connect_turbo_cable_stream_sources` before asserting stream updates
+  - Action Cable: `test` adapter (already configured); Rails 8 system tests defaults OK
+  - Sidekiq: run inline within specific examples or stub dispatchers
+
+- Scenarios
+  - Alerts CRUD (UI)
+    - Visit `alerts#index`, see table headers incl. "Current Price"
+    - Create valid alert: BTCUSDT, verify show page and index row present
+    - Create invalid alert: stub `BinanceClient#get_price` => nil; assert error "Symbol is invalid"
+    - Update alert: toggle `active`, verify change persisted
+    - Destroy alert: confirm removal from list
+  - Current price display
+    - Given alert with `last_price`, index shows number with 2 decimals
+    - Trigger worker inline with stubbed price; refresh; updated `last_price` renders
+  - Notification channels CRUD (UI)
+    - Create `browser` channel via form JSON `{}`
+    - Create `telegram` channel via form JSON `{ bot_token: 'TOKEN', chat_id: '123' }`
+    - Update and delete channel via UI
+  - Browser notifications broadcast (Turbo Streams)
+    - On `alerts#index`, subscribe with `<%= turbo_stream_from "browser_notifications" %>`
+    - Call a helper that simulates a trigger (invoke dispatcher or directly broadcast)
+    - `connect_turbo_cable_stream_sources`; assert an element briefly appears in `#browser_notifications` then disappears
+  - Telegram dispatch path (no network)
+    - Stub `TelegramNotifier` to capture payload
+    - Simulate dispatch (run `NotificationDispatcher`); assert called with expected text
+  - Email dispatch (optional)
+    - Create email channel; simulate dispatch; assert `ActionMailer::Base.deliveries.count` increments
+  - Dark theme UI
+    - Assert that layout nav uses `var(--surface)` background style and links have class `button`
+
+- Files to create
+  - `spec/system/system_setup_spec_helper.rb`: driver config, Turbo helper include
+  - `spec/system/alerts_system_spec.rb`
+  - `spec/system/notification_channels_system_spec.rb`
+  - `spec/system/notifications_system_spec.rb` (Turbo + Telegram)
+  - `spec/system/theme_system_spec.rb`
+
+- Stubbing strategy
+  - Use RSpec `allow_any_instance_of(BinanceClient).to receive(:get_price)` within examples that create alerts
+  - Stub `TelegramNotifier` with instance double in system tests
+  - For Turbo broadcasts, prefer running `NotificationDispatcher` with a fabricated alert; or directly call `Turbo::StreamsChannel.broadcast_append_to`
+
+- Acceptance criteria
+  - All system specs pass headless locally and in CI
+  - No flakiness: use Capybara expectations with waiting behavior; call `connect_turbo_cable_stream_sources` before assertions
+  - No external network calls during tests

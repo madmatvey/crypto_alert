@@ -15,3 +15,6 @@
 - Plan QA: PASS — requirements, stack, components, steps, dependencies, challenges documented; creative phases flagged. Next mode: CREATIVE at 2025-08-13T10:00:14Z
 - Creative: Completed UI/UX, architecture, and data model design docs for notifications and theme at 2025-08-13T10:04:07Z
 - VAN QA: PASS — Turbo/Stimulus configured via importmap; Faraday present; no new gems required; environment ready at 2025-08-13T10:08:46Z
+- Build: Implemented browser and Telegram notifications, Binance symbol validation, current price column, and dark theme; tests and lint green at 2025-08-13T10:16:35Z
+- Plan: Added System Test Plan for Capybara+Selenium, Rails 8, RSpec, and Turbo Streams at 2025-08-13T10:25:47Z
+- Plan QA (System Tests): PASS — scenarios, setup, files, stubbing, and acceptance criteria documented; proceed to IMPLEMENT at 2025-08-13T10:26:55Z
