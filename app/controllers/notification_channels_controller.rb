@@ -26,9 +26,8 @@ class NotificationChannelsController < ApplicationController
     @notification_channel = NotificationChannel.new(notification_channel_params)
     if @notification_channel.save
       respond_to do |format|
-        format.html { redirect_to @notification_channel, notice: "Channel was successfully created." }
+        format.html { redirect_to notification_channels_path, notice: "Channel was successfully created." }
         format.json { render json: @notification_channel, status: :created }
-        format.turbo_stream
       end
     else
       respond_to do |format|

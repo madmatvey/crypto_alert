@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Alerts', type: :system do
-  it 'creates a valid alert and shows it' do
+  it 'creates a valid alert and redirects to index with flash' do
     allow_any_instance_of(BinanceClient).to receive(:get_price).and_return(BigDecimal('10000'))
 
     visit root_path
@@ -14,9 +14,8 @@ RSpec.describe 'Alerts', type: :system do
 
     click_on 'Create Alert'
 
-    # Navigate to index to view the list
-    visit alerts_path
-
+    expect(page).to have_current_path(alerts_path, ignore_query: true)
+    expect(page).to have_content('Alert was successfully created.')
     expect(page).to have_selector('#alerts tr', minimum: 1)
     expect(page).to have_content('BTCUSDT')
   end

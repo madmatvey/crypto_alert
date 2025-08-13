@@ -26,9 +26,8 @@ class AlertsController < ApplicationController
     @alert = Alert.new(alert_params)
     if @alert.save
       respond_to do |format|
-        format.html { redirect_to @alert, notice: "Alert was successfully created." }
+        format.html { redirect_to alerts_path, notice: "Alert was successfully created." }
         format.json { render json: @alert, status: :created }
-        format.turbo_stream
       end
     else
       respond_to do |format|
