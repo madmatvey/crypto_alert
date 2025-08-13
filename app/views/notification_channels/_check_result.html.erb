@@ -1,0 +1,6 @@
+<%# locals: result %>
+<% if result.ok %>
+  <div class="flash notice">✅ <%= result.message %></div>
+<% else %>
+  <div class="flash alert">❌ <%= result.message %></div>
+<% end %>

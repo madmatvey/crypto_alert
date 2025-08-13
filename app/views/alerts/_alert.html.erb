@@ -7,6 +7,6 @@
   <td>
     <%= link_to "Show", alert %> |
     <%= link_to "Edit", edit_alert_path(alert) %> |
-    <%= link_to "Delete", alert, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+    <%= button_to "Delete", alert, method: :delete %>
   </td>
 </tr>

@@ -12,7 +12,6 @@ RSpec.describe 'User Stories: Channels → Alerts → Notifications', type: :sys
     click_on 'New Channel'
     select 'Browser', from: 'Kind'
     check 'Enabled'
-    fill_in 'Settings (JSON)', with: '{}'
     click_on 'Create Notification channel'
 
     # Create Log File channel
@@ -20,14 +19,16 @@ RSpec.describe 'User Stories: Channels → Alerts → Notifications', type: :sys
     click_on 'New Channel'
     select 'Log file', from: 'Kind'
     check 'Enabled'
-    fill_in 'Settings (JSON)', with: '{}'
+    fill_in 'Path', with: log_path.to_s
+    select 'plain', from: 'Format'
     click_on 'Create Notification channel'
 
     # Create Telegram channel
     visit new_notification_channel_path
     select 'Telegram', from: 'Kind'
     check 'Enabled'
-    fill_in 'Settings (JSON)', with: { bot_token: 'TOKEN', chat_id: '123' }.to_json
+    fill_in 'Bot token', with: 'TOKEN'
+    fill_in 'Chat id', with: '123'
     click_on 'Create Notification channel'
 
     # Stub Telegram notifier

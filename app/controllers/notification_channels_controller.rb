@@ -1,4 +1,5 @@
 class NotificationChannelsController < ApplicationController
+  skip_forgery_protection only: :check
   before_action :set_notification_channel, only: %i[show edit update destroy]
 
   def index
@@ -59,6 +60,18 @@ class NotificationChannelsController < ApplicationController
     end
   end
 
+  def check
+    kind = params.dig(:notification_channel, :kind)
+    settings = params.dig(:notification_channel, :settings) || {}
+    result = NotificationChannels::Validator.new.validate(kind: kind, settings: settings)
+
+    respond_to do |format|
+      format.json { render json: { ok: result.ok, message: result.message }, status: :ok }
+      format.html { render partial: "notification_channels/check_result", locals: { result: result } }
+      format.turbo_stream { render turbo_stream: turbo_stream.update("check_result", partial: "notification_channels/check_result", locals: { result: result }) }
+    end
+  end
+
   private
 
   def set_notification_channel
@@ -66,13 +79,18 @@ class NotificationChannelsController < ApplicationController
   end
 
   def notification_channel_params
-    permitted = params.require(:notification_channel).permit(:kind, :enabled, :settings_json)
-    settings = begin
-      JSON.parse(permitted.delete(:settings_json).presence || "{}")
-    rescue JSON::ParserError
-      {}
+    permitted = params.require(:notification_channel).permit(:kind, :enabled, settings: {})
+    # Back-compat: support settings_json if provided
+    if permitted[:settings].blank?
+      raw = params.dig(:notification_channel, :settings_json)
+      if raw.present?
+        begin
+          permitted[:settings] = JSON.parse(raw)
+        rescue JSON::ParserError
+          permitted[:settings] = {}
+        end
+      end
     end
-    permitted[:settings] = settings
     permitted
   end
 end

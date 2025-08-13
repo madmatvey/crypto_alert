@@ -11,7 +11,12 @@ Rails.application.routes.draw do
 
   # Alerts and Notification Channels
   resources :alerts
-  resources :notification_channels
+  resources :notification_channels do
+    collection do
+      post :check
+      get :check
+    end
+  end
 
   # Defines the root path route ("/")
   root "alerts#index"

@@ -1,4 +1,4 @@
-<%= form_with(model: notification_channel) do |f| %>
+<%= form_with(model: notification_channel, data: { controller: "channel-form", "channel-form-check-url-value": check_notification_channels_path }) do |f| %>
   <% if notification_channel.errors.any? %>
     <div class="errors">
       <h3><%= pluralize(notification_channel.errors.count, "error") %> prohibited this channel from being saved:</h3>
@@ -12,7 +12,7 @@
 
   <div>
     <%= f.label :kind %><br>
-    <%= f.select :kind, NotificationChannel.kinds.keys.map { |k| [k.humanize, k] } %>
+    <%= f.select :kind, NotificationChannel.kinds.keys.map { |k| [k.humanize, k] }, {}, data: { action: "change->channel-form#kindChanged" } %>
   </div>
 
   <div>
@@ -20,23 +20,47 @@
     <%= f.check_box :enabled %>
   </div>
 
-  <div>
-    <%= f.label :settings_json, "Settings (JSON)" %><br>
-    <%= f.text_area :settings_json, value: notification_channel.settings.to_json, rows: 6, cols: 60 %>
-    <p>
-      Examples:
-      <pre>// log_file
-{"path":"log/alerts.log","format":"plain"}
-// email
-{"to":"alerts@example.com","subject_template":"Alert: %{symbol} %{direction} %{threshold}"}
-// browser
-{}
-// telegram
-{"bot_token":"123:ABC","chat_id":"-1001234567890"}</pre>
-    </p>
+  <div data-channel-form-target="settings" data-kind="log_file">
+    <h4>Log file settings</h4>
+    <label for="notification_channel_settings_path">Path</label><br>
+    <input type="text" name="notification_channel[settings][path]" id="notification_channel_settings_path" value="<%= notification_channel.settings&.fetch("path", "log/alerts.log") %>">
+    <br>
+    <label for="notification_channel_settings_format">Format</label><br>
+    <select name="notification_channel[settings][format]" id="notification_channel_settings_format">
+      <option value="plain" <%= "selected" if notification_channel.settings&.fetch("format", "plain") == "plain" %>>plain</option>
+      <option value="json" <%= "selected" if notification_channel.settings&.fetch("format", "plain") == "json" %>>json</option>
+    </select>
   </div>
 
-  <div>
-    <%= f.submit %>
+  <div data-channel-form-target="settings" data-kind="email">
+    <h4>Email settings</h4>
+    <label for="notification_channel_settings_to">To</label><br>
+    <input type="email" name="notification_channel[settings][to]" id="notification_channel_settings_to" value="<%= notification_channel.settings&.fetch("to", "") %>">
+    <br>
+    <label for="notification_channel_settings_subject_template">Subject template</label><br>
+    <input type="text" name="notification_channel[settings][subject_template]" id="notification_channel_settings_subject_template" value="<%= notification_channel.settings&.fetch("subject_template", "Alert: %{symbol} %{direction} %{threshold}") %>">
   </div>
+
+  <div data-channel-form-target="settings" data-kind="browser">
+    <h4>Browser notifications</h4>
+    <p>No additional settings required.</p>
+  </div>
+
+  <div data-channel-form-target="settings" data-kind="telegram">
+    <h4>Telegram settings</h4>
+    <label for="notification_channel_settings_bot_token">Bot token</label><br>
+    <input type="password" name="notification_channel[settings][bot_token]" id="notification_channel_settings_bot_token" value="<%= notification_channel.settings&.fetch("bot_token", "") %>">
+    <br>
+    <label for="notification_channel_settings_chat_id">Chat id</label><br>
+    <input type="text" name="notification_channel[settings][chat_id]" id="notification_channel_settings_chat_id" value="<%= notification_channel.settings&.fetch("chat_id", "") %>">
+  </div>
+
+  <div style="margin-top: .5rem;">
+    <%= f.submit %>
+    <%= button_tag "Check settings", type: "submit", formaction: check_notification_channels_path, formmethod: "post", data: { turbo_frame: "check_result" }, class: "button" %>
+  </div>
+
+  <%= turbo_frame_tag "check_result" do %>
+    <!-- validation result appears here -->
+  <% end %>
 <% end %>

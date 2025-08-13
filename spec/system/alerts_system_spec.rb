@@ -63,10 +63,8 @@ RSpec.describe 'Alerts', type: :system do
     visit alerts_path
     expect(page).to have_selector("#alert_#{alert.id}")
 
-    accept_confirm do
-      within("#alert_#{alert.id}") do
-        click_on 'Delete'
-      end
+    within("#alert_#{alert.id}") do
+      click_on 'Delete'
     end
 
     expect(page).to have_current_path(alerts_path, ignore_query: true)

@@ -5,6 +5,6 @@
   <td>
     <%= link_to "Show", notification_channel %> |
     <%= link_to "Edit", edit_notification_channel_path(notification_channel) %> |
-    <%= link_to "Delete", notification_channel, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+    <%= button_to "Delete", notification_channel, method: :delete %>
   </td>
 </tr>

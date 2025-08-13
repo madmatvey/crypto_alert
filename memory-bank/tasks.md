@@ -264,3 +264,66 @@ Type: Feature
 
 - Rollout
   - Implement behind a small feature switch in view if needed; enable in dev/test first
+
+## Pre-Save Channel Test Gate (Plan)
+
+- Goals
+  - Require a successful "Send Test" for the current Kind + Settings before allowing Save
+  - Support all kinds: log_file, email, browser, telegram
+
+- UX
+  - In `notification_channels/_form.html.erb`:
+    - Add a prominent "Send Test" button and a status indicator (Success/Failed/Not tested)
+    - Disable the primary Submit until the latest test has passed for the current settings
+    - If user changes Kind or any Settings input, reset status to "Not tested" and disable Submit
+  - Browser test specifics:
+    - Inline element triggers Notification API on the client
+    - Stimulus posts an ACK back to server indicating success/permission result
+
+- Server/API
+  - POST `/notification_channels/test` (alias existing `check`) accepts `kind` + `settings` (no persist)
+  - Response contains:
+    - For email/log_file/telegram: test performed server-side; return JSON/HTML with result
+    - For browser: return a small HTML snippet that injects a Stimulus controller to trigger Notification and POST ACK
+  - ACK endpoint: POST `/notification_channels/test_ack` to record browser test success
+
+- Gating logic
+  - For new channel (not persisted):
+    - Compute `settings_digest = SHA256(kind + settings.to_json)`
+    - Store last test status in session (or Redis) keyed by `settings_digest`
+    - On Submit, controller validates that a PASSED test exists for the same digest and is recent (e.g., <= 10 minutes)
+  - For updates (persisted):
+    - If settings changed → require new PASSED test; if unchanged → no test required
+  - Error message when missing: "Please run and pass Send Test for the current settings before saving"
+
+- Per-kind test behavior
+  - log_file: attempt to append a test line to `path`; success if write succeeds
+  - email: send `deliver_now` a small test email to `to`; success if no exception
+  - telegram: use `TelegramNotifier#send_message(token, chat_id, text: "Test message")`; success if response ok
+  - browser: return HTML that triggers Notification; Stimulus posts ACK to `/notification_channels/test_ack` with a `token`; server marks PASS for that token/digest
+
+- Implementation notes
+  - Create service `NotificationChannels::Tester` with `test(kind:, settings:, session_id:)`
+  - Add small `NotificationChannels::BrowserAck` store (session/Redis)
+  - Extend existing `Validator` or keep separate; keep `check` as lightweight validation; `test` performs real side-effect
+  - On form page, wire Stimulus to:
+    - Reset status and disable Submit on Kind/Settings change
+    - Handle Test clicks, render status in Turbo Frame, enable Submit on PASS
+
+- Tests
+  - Request specs: `/notification_channels/test` returns PASS/FAIL per kind (stub network for email/telegram)
+  - System specs:
+    - Switching Kind toggles fields (already added)
+    - "Send Test" for log_file shows PASS/FAIL and enables Submit
+    - "Send Test" for browser posts ACK and enables Submit (in test env, allow Stimulus to ACK without Notification)
+    - "Send Test" for telegram: stub network success and enable Submit
+    - Create/update submit is blocked until test passed; passes after test
+
+- Risks
+  - Email/Telegram real sends during test; clearly label as test and do not enable automatically
+  - Browser Notification permission may be denied; show clear guidance and keep Save disabled until success
+  - Session-based gating must handle multiple forms/tabs (token + digest scoping)
+
+- Rollout
+  - Implement behind an env flag for production if needed
+  - Log test outcomes with minimal PII
