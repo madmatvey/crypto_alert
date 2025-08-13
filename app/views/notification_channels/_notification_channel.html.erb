@@ -1,0 +1,10 @@
+<tr id="notification_channel_<%= notification_channel.id %>">
+  <td><%= notification_channel.kind %></td>
+  <td><%= notification_channel.enabled %></td>
+  <td><pre><%= JSON.pretty_generate(notification_channel.settings) %></pre></td>
+  <td>
+    <%= link_to "Show", notification_channel %> |
+    <%= link_to "Edit", edit_notification_channel_path(notification_channel) %> |
+    <%= link_to "Delete", notification_channel, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+  </td>
+</tr>

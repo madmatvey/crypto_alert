@@ -1,0 +1,18 @@
+<h1>Alerts</h1>
+
+<p><%= link_to "New Alert", new_alert_path, class: "button" %></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Direction</th>
+      <th>Threshold</th>
+      <th>Active</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="alerts">
+    <%= render @alerts %>
+  </tbody>
+</table>

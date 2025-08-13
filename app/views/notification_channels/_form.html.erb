@@ -1,0 +1,38 @@
+<%= form_with(model: notification_channel) do |f| %>
+  <% if notification_channel.errors.any? %>
+    <div class="errors">
+      <h3><%= pluralize(notification_channel.errors.count, "error") %> prohibited this channel from being saved:</h3>
+      <ul>
+        <% notification_channel.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :kind %><br>
+    <%= f.select :kind, NotificationChannel.kinds.keys.map { |k| [k.humanize, k] } %>
+  </div>
+
+  <div>
+    <%= f.label :enabled %>
+    <%= f.check_box :enabled %>
+  </div>
+
+  <div>
+    <%= f.label :settings_json, "Settings (JSON)" %><br>
+    <%= f.text_area :settings_json, value: notification_channel.settings.to_json, rows: 6, cols: 60 %>
+    <p>
+      Examples:
+      <pre>// log_file
+{"path":"log/alerts.log","format":"plain"}
+// email
+{"to":"alerts@example.com","subject_template":"Alert: %{symbol} %{direction} %{threshold}"}</pre>
+    </p>
+  </div>
+
+  <div>
+    <%= f.submit %>
+  </div>
+<% end %>

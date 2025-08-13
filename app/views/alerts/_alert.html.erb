@@ -1,0 +1,11 @@
+<tr id="alert_<%= alert.id %>">
+  <td><%= alert.symbol %></td>
+  <td><%= alert.direction %></td>
+  <td><%= alert.threshold_price %></td>
+  <td><%= alert.active %></td>
+  <td>
+    <%= link_to "Show", alert %> |
+    <%= link_to "Edit", edit_alert_path(alert) %> |
+    <%= link_to "Delete", alert, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
+  </td>
+</tr>

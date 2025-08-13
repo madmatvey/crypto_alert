@@ -1,0 +1,19 @@
+<h1>Channel</h1>
+
+<p>
+  <strong>Kind:</strong>
+  <%= @notification_channel.kind %>
+</p>
+<p>
+  <strong>Enabled:</strong>
+  <%= @notification_channel.enabled %>
+</p>
+<p>
+  <strong>Settings:</strong>
+  <pre><%= JSON.pretty_generate(@notification_channel.settings) %></pre>
+</p>
+
+<p>
+  <%= link_to "Edit", edit_notification_channel_path(@notification_channel) %> |
+  <%= link_to "Back", notification_channels_path %>
+</p>

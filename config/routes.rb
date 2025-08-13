@@ -9,6 +9,15 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
+  # Alerts and Notification Channels
+  resources :alerts
+  resources :notification_channels
+
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "alerts#index"
+
+  if Rails.env.development?
+    require "sidekiq/web"
+    mount Sidekiq::Web => "/sidekiq"
+  end
 end

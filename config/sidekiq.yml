@@ -1,0 +1,4 @@
+# Concurrency and queues
+:concurrency: 5
+:queues:
+  - default

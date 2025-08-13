@@ -1,0 +1,36 @@
+<%= form_with(model: alert) do |f| %>
+  <% if alert.errors.any? %>
+    <div class="errors">
+      <h3><%= pluralize(alert.errors.count, "error") %> prohibited this alert from being saved:</h3>
+      <ul>
+        <% alert.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :symbol %><br>
+    <%= f.text_field :symbol %>
+  </div>
+
+  <div>
+    <%= f.label :direction %><br>
+    <%= f.select :direction, Alert.directions.keys.map { |k| [k.humanize, k] } %>
+  </div>
+
+  <div>
+    <%= f.label :threshold_price %><br>
+    <%= f.number_field :threshold_price, step: 0.00000001 %>
+  </div>
+
+  <div>
+    <%= f.label :active %>
+    <%= f.check_box :active %>
+  </div>
+
+  <div>
+    <%= f.submit %>
+  </div>
+<% end %>

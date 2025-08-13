@@ -19,19 +19,19 @@ Type: Feature
 - Frontend: Hotwire (Turbo, Stimulus)
 
 ## Technology Validation Checkpoints
-- [ ] Gems added/installed: sidekiq, redis, rspec-rails, factory_bot_rails, faker, shoulda-matchers, faraday, sidekiq-cron
-- [ ] Sidekiq configured (initializer, Redis URL), web UI available in development
-- [ ] Hello-world Sidekiq worker runs
-- [ ] RSpec installed and `bundle exec rspec` runs
-- [ ] Mailer test adapter configured; config validated
-- [ ] Ensure Solid Queue is not used for background jobs
+- [x] Gems added/installed: sidekiq, redis, rspec-rails, factory_bot_rails, faker, shoulda-matchers, faraday, sidekiq-cron
+- [x] Sidekiq configured (initializer, Redis URL), web UI available in development
+- [x] Hello-world Sidekiq worker runs
+- [x] RSpec installed and `bundle exec rspec` runs
+- [x] Mailer test adapter configured; config validated
+- [x] Ensure Solid Queue is not used for background jobs
 
 ## Status
 - [x] Initialization complete
 - [x] Planning complete
 - [x] Creative complete
-- [ ] Technology validation complete
-- [ ] Implementation in progress
+- [x] Technology validation complete
+- [x] Implementation in progress
 
 ## Implementation Plan
 1. Setup tests and background job infrastructure

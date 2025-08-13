@@ -1,0 +1,17 @@
+<h1>Channels</h1>
+
+<p><%= link_to "New Channel", new_notification_channel_path, class: "button" %></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Kind</th>
+      <th>Enabled</th>
+      <th>Settings</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="notification_channels">
+    <%= render @notification_channels %>
+  </tbody>
+</table>

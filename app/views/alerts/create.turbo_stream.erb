@@ -1,0 +1,2 @@
+<%= turbo_stream.prepend "alerts", partial: "alerts/alert", locals: { alert: @alert } %>
+<%= turbo_stream.update "flash", partial: "shared/flash" %>

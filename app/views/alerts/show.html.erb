@@ -1,0 +1,23 @@
+<h1>Alert</h1>
+
+<p>
+  <strong>Symbol:</strong>
+  <%= @alert.symbol %>
+</p>
+<p>
+  <strong>Direction:</strong>
+  <%= @alert.direction %>
+</p>
+<p>
+  <strong>Threshold:</strong>
+  <%= @alert.threshold_price %>
+</p>
+<p>
+  <strong>Active:</strong>
+  <%= @alert.active %>
+</p>
+
+<p>
+  <%= link_to "Edit", edit_alert_path(@alert) %> |
+  <%= link_to "Back", alerts_path %>
+</p>
