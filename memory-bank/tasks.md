@@ -19,7 +19,7 @@ Type: Feature
 - [x] Turbo Streams broadcast/subscribe path defined
 - [x] Stimulus controller for Notification API hooked to stream target
 - [ ] Telegram HTTP call (Faraday) verified with stub
-- [ ] No additional gems required; config works in dev/test
+- [x] No additional gems required; config works in dev/test
 
 ## Status
 - [x] Initialization complete
