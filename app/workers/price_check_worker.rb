@@ -13,8 +13,14 @@ class PriceCheckWorker
     if PriceChecker.new.triggered?(alert, current_price)
       NotificationDispatcher.new.dispatch(alert, current_price)
       NotificationChannel.find_each do |channel|
+        next unless channel.enabled?
         AlertNotification.create!(alert: alert, notification_channel: channel, delivered_at: Time.current)
       end
+    end
+
+    # Persist last observed price for future threshold crossing detection
+    if current_price
+      alert.update_column(:last_price, current_price)
     end
   end
 end

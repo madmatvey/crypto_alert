@@ -4,5 +4,6 @@ FactoryBot.define do
     direction { :up }
     threshold_price { BigDecimal('10000.0') }
     active { true }
+    last_price { nil }
   end
 end
