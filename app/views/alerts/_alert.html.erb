@@ -2,6 +2,7 @@
   <td><%= alert.symbol %></td>
   <td><%= alert.direction %></td>
   <td><%= alert.threshold_price %></td>
+  <td><%= number_with_precision(alert.last_price, precision: 2) if alert.last_price.present? %></td>
   <td><%= alert.active %></td>
   <td>
     <%= link_to "Show", alert %> |

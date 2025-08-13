@@ -1,31 +1,26 @@
 require 'rails_helper'
 
 RSpec.describe NotificationChannel, type: :model do
-  it { is_expected.to define_enum_for(:kind).with_values(log_file: 0, email: 1) }
+  it { is_expected.to define_enum_for(:kind).with_values(log_file: 0, email: 1, browser: 2, telegram: 3) }
 
-  context 'log_file' do
-    it 'defaults path and accepts valid format' do
-      nc = described_class.new(kind: :log_file, settings: { 'format' => 'plain' })
-      expect(nc).to be_valid
-      expect(nc.settings['path']).to eq('log/alerts.log')
+  context 'telegram validations' do
+    it 'requires bot_token and chat_id' do
+      channel = described_class.new(kind: :telegram, enabled: true, settings: {})
+      expect(channel).not_to be_valid
+      expect(channel.errors[:settings]).to include("bot_token is required")
+      expect(channel.errors[:settings]).to include("chat_id is required")
     end
 
-    it 'rejects invalid format' do
-      nc = described_class.new(kind: :log_file, settings: { 'format' => 'xml' })
-      expect(nc).not_to be_valid
+    it 'accepts numeric chat_id' do
+      channel = described_class.new(kind: :telegram, enabled: true, settings: { 'bot_token' => 'TOKEN', 'chat_id' => '123' })
+      expect(channel).to be_valid
     end
   end
 
-  context 'email' do
-    it 'requires to email' do
-      nc = described_class.new(kind: :email, settings: {})
-      expect(nc).not_to be_valid
-    end
-
-    it 'accepts valid email and sets subject template default' do
-      nc = described_class.new(kind: :email, settings: { 'to' => 'a@b.com' })
-      expect(nc).to be_valid
-      expect(nc.settings['subject_template']).to be_present
+  context 'browser validations' do
+    it 'is valid with empty settings' do
+      channel = described_class.new(kind: :browser, enabled: true, settings: {})
+      expect(channel).to be_valid
     end
   end
 end

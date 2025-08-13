@@ -2,12 +2,16 @@
 
 <p><%= link_to "New Alert", new_alert_path, class: "button" %></p>
 
+<%= turbo_stream_from "browser_notifications" %>
+<div id="browser_notifications" style="display:none"></div>
+
 <table>
   <thead>
     <tr>
       <th>Symbol</th>
       <th>Direction</th>
       <th>Threshold</th>
+      <th>Current Price</th>
       <th>Active</th>
       <th></th>
     </tr>

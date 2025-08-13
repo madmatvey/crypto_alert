@@ -11,13 +11,15 @@
   </head>
 
   <body>
-    <nav style="padding: 1rem; background: #f5f5f5;">
-      <%= link_to "Alerts", alerts_path %> |
-      <%= link_to "Channels", notification_channels_path %>
+    <nav style="padding: 1rem; background: var(--surface); border-bottom: 1px solid var(--border);">
+      <%= link_to "Alerts", alerts_path, class: "button" %>
+      <%= link_to "Channels", notification_channels_path, class: "button" %>
     </nav>
 
     <%= render "shared/flash" %>
 
-    <%= yield %>
+    <main style="max-width: 960px; margin: 0 auto; padding: 1rem;">
+      <%= yield %>
+    </main>
   </body>
 </html>

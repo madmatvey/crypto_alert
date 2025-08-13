@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "cgi"
+
 class NotificationDispatcher
   def dispatch(alert, current_price)
     NotificationChannel.find_each do |channel|
@@ -10,6 +12,10 @@ class NotificationDispatcher
         dispatch_log(channel, alert, current_price)
       when :email
         dispatch_email(channel, alert, current_price)
+      when :browser
+        dispatch_browser(channel, alert, current_price)
+      when :telegram
+        dispatch_telegram(channel, alert, current_price)
       end
     end
   end
@@ -33,6 +39,20 @@ class NotificationDispatcher
     }
     body = build_message(alert, current_price, channel)
     AlertMailer.with(to: to, subject: subject, body: body).alert_email.deliver_later
+  end
+
+  def dispatch_browser(_channel, alert, current_price)
+    title = "Crypto Alert"
+    body = "#{alert.symbol} #{alert.direction} crossed #{alert.threshold_price} — current #{current_price}"
+    html = %(<div data-controller="browser-notifications" data-browser-notifications-title-value="#{CGI.escapeHTML(title)}" data-browser-notifications-body-value="#{CGI.escapeHTML(body)}"></div>)
+    Turbo::StreamsChannel.broadcast_append_to("browser_notifications", target: "browser_notifications", html: html)
+  end
+
+  def dispatch_telegram(channel, alert, current_price)
+    token = channel.settings["bot_token"].to_s
+    chat_id = channel.settings["chat_id"].to_s
+    text = build_message(alert, current_price, channel)
+    TelegramNotifier.new.send_message(token: token, chat_id: chat_id, text: text)
   end
 
   def build_message(alert, current_price, channel)
