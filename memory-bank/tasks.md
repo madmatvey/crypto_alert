@@ -29,6 +29,7 @@ Type: Feature
 ## Status
 - [x] Initialization complete
 - [x] Planning complete
+- [x] Creative complete
 - [ ] Technology validation complete
 - [ ] Implementation in progress
 
@@ -66,12 +67,15 @@ Type: Feature
 8. Edge cases
    - Handle invalid symbols and API errors
    - Multiple alerts for the same symbol handled independently
-   - Decide behavior when threshold already crossed at creation (Creative phase)
+   - Threshold crossed at creation: do not trigger immediately; only on subsequent crossing
 
-## Creative Phases Required
-- [ ] Architecture: scheduling strategy and polling cadence for Sidekiq
-- [ ] Data Model: `NotificationChannel.settings` schema per kind
-- [ ] UI/UX: minimal forms and layout
+## Creative Phases — Decisions
+- Architecture (scheduling): sidekiq-cron every 1 minute; batch poller enqueues per-alert checks
+  - See: `memory-bank/creative/creative-architecture-scheduling.md`
+- Data Model (channel settings): JSONB + per-kind model validation (`log_file`, `email`)
+  - See: `memory-bank/creative/creative-data-model-notification-channel-settings.md`
+- UI/UX (forms and layout): Standard CRUD pages with Turbo enhancements; accessible forms
+  - See: `memory-bank/creative/creative-uiux-alerts-and-channels.md`
 
 ## Dependencies
 - sidekiq, redis, rspec-rails, factory_bot_rails, faker, shoulda-matchers, faraday, sidekiq-cron
