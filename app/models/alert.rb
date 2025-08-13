@@ -13,9 +13,8 @@ class Alert < ApplicationRecord
   def binance_symbol_exists
     return if symbol.to_s.strip.empty?
 
-    client = BinanceClient.new
-    price = client.get_price(symbol)
-    if price.nil?
+    validator = Alerts::SymbolValidator.new
+    if !validator.valid_symbol?(symbol)
       errors.add(:symbol, "is invalid")
     end
   rescue StandardError

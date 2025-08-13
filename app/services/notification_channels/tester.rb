@@ -26,7 +26,7 @@ module NotificationChannels
     private
 
     def compute_digest(kind, settings)
-      Digest::SHA256.hexdigest([kind.to_s, settings.to_json].join("|"))
+      Digest::SHA256.hexdigest([ kind.to_s, settings.to_json ].join("|"))
     end
 
     def test_log_file(settings, digest)

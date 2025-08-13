@@ -65,9 +65,11 @@ RSpec.describe 'User Stories: Channels → Alerts → Notifications', type: :sys
     allow_any_instance_of(BinanceClient).to receive(:get_price).with('BTCUSDT').and_return(BigDecimal('10000'))
 
     # Run worker directly to avoid queue timing
-    expect {
-      PriceCheckWorker.new.perform(alert.id)
-    }.to change { AlertNotification.count }.by(3)
+    Sidekiq::Testing.inline! do
+      expect {
+        PriceCheckWorker.new.perform(alert.id)
+      }.to change { AlertNotification.count }.by(3)
+    end
 
     # Log file has a new line
     log_content = File.read(log_path)

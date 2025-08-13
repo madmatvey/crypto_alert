@@ -143,7 +143,7 @@ class NotificationChannelsController < ApplicationController
   end
 
   def settings_digest_for(channel)
-    Digest::SHA256.hexdigest([channel.kind.to_s, (channel.settings || {}).to_json].join("|"))
+    Digest::SHA256.hexdigest([ channel.kind.to_s, (channel.settings || {}).to_json ].join("|"))
   end
 
   def require_test_pass?(channel)

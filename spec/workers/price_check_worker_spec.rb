@@ -5,19 +5,16 @@ RSpec.describe PriceCheckWorker, type: :worker do
   let!(:enabled_channel) { create(:notification_channel, :log_file, enabled: true) }
   let!(:disabled_channel) { create(:notification_channel, :log_file, enabled: false) }
 
-  it 'dispatches and records notifications only for enabled channels when threshold is crossed' do
+  it 'enqueues per enabled channel when threshold is crossed and updates last_price' do
     client = instance_double(BinanceClient)
     allow(BinanceClient).to receive(:new).and_return(client)
     allow(client).to receive(:get_price).with('BTCUSDT').and_return(BigDecimal('10.0'))
 
-    dispatcher = instance_double(NotificationDispatcher)
-    allow(NotificationDispatcher).to receive(:new).and_return(dispatcher)
-    allow(dispatcher).to receive(:dispatch)
+    enqueuer = instance_double(NotificationEnqueuer)
+    allow(NotificationEnqueuer).to receive(:new).and_return(enqueuer)
+    expect(enqueuer).to receive(:enqueue).with(alert: alert, current_price: BigDecimal('10.0'))
 
-    expect { described_class.new.perform(alert.id) }
-      .to change { AlertNotification.count }.by(1)
-
-    expect(dispatcher).to have_received(:dispatch)
+    expect { described_class.new.perform(alert.id) }.not_to change { AlertNotification.count }
 
     alert.reload
     expect(alert.last_price).to eq(BigDecimal('10.0'))

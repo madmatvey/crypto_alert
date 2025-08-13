@@ -11,11 +11,7 @@ class PriceCheckWorker
     current_price = client.get_price(alert.symbol)
 
     if PriceChecker.new.triggered?(alert, current_price)
-      NotificationDispatcher.new.dispatch(alert, current_price)
-      NotificationChannel.find_each do |channel|
-        next unless channel.enabled?
-        AlertNotification.create!(alert: alert, notification_channel: channel, delivered_at: Time.current)
-      end
+      NotificationEnqueuer.new.enqueue(alert: alert, current_price: current_price)
     end
 
     # Persist last observed price for future threshold crossing detection
