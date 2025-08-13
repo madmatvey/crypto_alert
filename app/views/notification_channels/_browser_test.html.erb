@@ -1,0 +1,7 @@
+<div data-controller="browser-notifications" data-browser-notifications-title-value="Test" data-browser-notifications-body-value="Browser notification test">
+  <p>If you saw a browser notification, click confirm to mark this test as passed.</p>
+  <div style="display:flex; gap:.5rem; align-items:center;">
+    <button type="button" class="button" data-action="click->browser-notifications#requestAndNotify">Show test notification</button>
+    <%= button_to "Confirm success", test_ack_notification_channels_path, method: :post, params: { settings_digest: settings_digest }, form: { data: { turbo_frame: "check_result" } }, class: "button" %>
+  </div>
+</div>

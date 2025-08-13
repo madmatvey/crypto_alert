@@ -9,27 +9,31 @@ export default class extends Controller {
   connect() {
     try {
       if (!("Notification" in window)) {
-        this.remove()
         return
       }
-
       if (Notification.permission === "granted") {
         this.notify()
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            this.notify()
-          } else {
-            this.remove()
-          }
-        })
+      }
+      // Do not auto request permission on connect; require user gesture
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  requestAndNotify() {
+    try {
+      if (!("Notification" in window)) return
+      if (Notification.permission === "granted") {
+        this.notify()
         return
       }
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          this.notify()
+        }
+      })
     } catch (e) {
-      // fail silently
-    } finally {
-      // ensure we do not accumulate nodes
-      this.remove()
+      // ignore
     }
   }
 
@@ -41,9 +45,5 @@ export default class extends Controller {
     } catch (e) {
       // ignore
     }
-  }
-
-  remove() {
-    this.element.remove()
   }
 }

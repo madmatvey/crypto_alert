@@ -58,9 +58,10 @@
   <div style="margin-top: .5rem;">
     <%= f.submit %>
     <%= button_tag "Check settings", type: "submit", formaction: check_notification_channels_path, formmethod: "post", data: { turbo_frame: "check_result" }, class: "button" %>
+    <%= button_tag "Send Test", type: "submit", formaction: test_notification_channels_path, formmethod: "post", data: { turbo_frame: "check_result" }, class: "button" %>
   </div>
 
   <%= turbo_frame_tag "check_result" do %>
-    <!-- validation result appears here -->
+    <!-- validation/test result appears here -->
   <% end %>
 <% end %>

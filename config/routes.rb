@@ -15,6 +15,8 @@ Rails.application.routes.draw do
     collection do
       post :check
       get :check
+      post :test
+      post :test_ack
     end
   end
 

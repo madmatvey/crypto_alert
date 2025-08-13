@@ -7,11 +7,18 @@ RSpec.describe 'User Stories: Channels → Alerts → Notifications', type: :sys
     log_path = Rails.root.join('log/alerts.log')
     File.write(log_path, '') if File.exist?(log_path)
 
-    # Create Browser channel
+    # Create Browser channel with test confirmation
     visit notification_channels_path
     click_on 'New Channel'
     select 'Browser', from: 'Kind'
     check 'Enabled'
+    # Send test, then confirm (browser UI is ephemeral; we confirm via button)
+    click_on 'Send Test'
+    expect(page).to have_css('#check_result')
+    if page.has_button?('Confirm success')
+      click_on 'Confirm success'
+      expect(page).to have_content('Browser test confirmed').or have_css('#check_result')
+    end
     click_on 'Create Notification channel'
 
     # Create Log File channel

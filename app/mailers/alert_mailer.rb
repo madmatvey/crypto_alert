@@ -9,4 +9,11 @@ class AlertMailer < ApplicationMailer
       format.text { render plain: @body }
     end
   end
+
+  def test_email
+    @body = params[:body] || "This is a test notification."
+    mail(to: params[:to], subject: params[:subject] || "Test Notification") do |format|
+      format.text { render plain: @body }
+    end
+  end
 end
