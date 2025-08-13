@@ -1,3 +1,105 @@
+# Task: Refactor Notifications to Sidekiq Workers; Thin Controllers/Models
+
+## Description
+Move all notification sending out of synchronous code paths into dedicated Sidekiq workers. Ensure controllers and models remain thin by pushing business logic into service objects. Keep current UX unchanged.
+
+## Complexity
+Level: 3  
+Type: Refactor/Feature
+
+## Technology Stack
+- Rails 8 (Hotwire: Turbo + Stimulus)
+- Sidekiq + Redis
+- Faraday (Binance, Telegram)
+- Turbo Streams (ActionCable)
+- ActionMailer
+- RSpec, RuboCop
+
+## Requirements
+- All notification kinds (log_file, email, browser, telegram) are delivered by Sidekiq workers only.
+- `PriceCheckWorker` enqueues jobs; it must not perform delivery or create `AlertNotification` records.
+- A service orchestrates enqueuing per enabled channel; individual workers create `AlertNotification` on successful send.
+- Controllers remain thin (parameter handling, response rendering). Models avoid inline network/business logic; use services.
+- No UI/UX changes.
+
+## Components Affected
+- Services: `NotificationDispatcher` → delegate to new `NotificationEnqueuer`; add `NotificationMessageBuilder`.  
+- Workers: new per-kind workers to send notifications.  
+- Models: `Alert` validation uses a service for Binance symbol check.  
+- Mailers/Views: unchanged.
+
+## Architecture Considerations
+- Orchestration: `NotificationEnqueuer#enqueue(alert:, current_price:)` queries enabled channels and enqueues one job per channel kind.
+- Job payload: pass `alert_id`, `notification_channel_id`, and `current_price` as string (to avoid BigDecimal serialization issues).
+- Idempotency: workers should be tolerant to retries; before creating `AlertNotification`, optionally skip if a record for the same alert/channel exists within a short time window. A stricter DB-level unique key via a `dedup_key` column can be added later if needed (no new gems).
+- Browser notifications can safely broadcast from a worker via `Turbo::StreamsChannel`.
+- Email sending is performed inside the worker (`deliver_now`) to keep a single job boundary.
+
+## Implementation Plan
+1) Services
+   - Create `app/services/notification_enqueuer.rb` with `enqueue(alert:, current_price:)`.
+   - Create `app/services/notification_message_builder.rb` to centralize message formatting (plain/json) reused by workers.
+   - Add `app/services/alerts/symbol_validator.rb` with `validate(alert)` delegating to `BinanceClient`.
+   - Update `Alert` to use the validator service inside its custom validation hook.
+   - Update `NotificationDispatcher` to become a thin wrapper that calls `NotificationEnqueuer` (for backward compatibility), or replace callers to use `NotificationEnqueuer` directly.
+
+2) Workers (Sidekiq)
+   - `LogFileNotificationWorker.perform(alert_id, channel_id, price_str)`
+   - `EmailNotificationWorker.perform(alert_id, channel_id, price_str)`
+   - `BrowserNotificationWorker.perform(alert_id, channel_id, price_str)`
+   - `TelegramNotificationWorker.perform(alert_id, channel_id, price_str)`
+   Worker responsibilities: load records; skip if missing/disabled; build message; perform send; on success, create `AlertNotification` with `delivered_at`; rescue/log errors.
+
+3) Wire-up
+   - In `PriceCheckWorker`, replace synchronous dispatch with `NotificationEnqueuer.enqueue` and remove `AlertNotification.create!` loop.
+   - Keep `PollActiveAlertsWorker` unchanged (still schedules `PriceCheckWorker`).
+
+4) Tests
+   - Service spec: `NotificationEnqueuer` enqueues correct jobs per enabled channel.
+   - Worker specs: each worker performs its send side-effect and creates `AlertNotification` (stub IO/network; use Sidekiq inline in specs).
+   - Update `PriceCheckWorker` spec to assert enqueue behavior and that `AlertNotification` is not created there.
+   - Update/rename `notification_dispatcher_spec` → `notification_enqueuer_spec` or keep a compatibility wrapper spec.
+
+5) Optional (follow-up)
+   - Migration to add `alert_notifications.dedup_key` with unique index to guarantee idempotency per trigger.
+
+## Files to Modify/Create
+- Create: `app/services/notification_enqueuer.rb`
+- Create: `app/services/notification_message_builder.rb`
+- Create: `app/services/alerts/symbol_validator.rb`
+- Create: `app/workers/log_file_notification_worker.rb`
+- Create: `app/workers/email_notification_worker.rb`
+- Create: `app/workers/browser_notification_worker.rb`
+- Create: `app/workers/telegram_notification_worker.rb`
+- Edit: `app/workers/price_check_worker.rb`
+- Edit: `app/services/notification_dispatcher.rb` (delegate or deprecate)
+- Edit: `app/models/alert.rb` (use validator service)
+- Specs: add worker/enqueuer specs; update existing service/worker specs; ensure system specs run with Sidekiq inline where needed.
+
+## Testing Strategy
+- Unit: enqueuer/worker specs; message builder specs; alert validator service spec.
+- Integration: adjust existing notification flow specs to run Sidekiq inline; assert `AlertNotification` records per channel.
+- System: existing UI/system specs remain valid; use Sidekiq inline and stubs.
+
+## Challenges & Mitigations
+- Duplicate sends via retries: skip-if-recent check; consider `dedup_key` unique index in follow-up.
+- BigDecimal args in jobs: serialize as string, parse back in worker.
+- Turbo broadcast from job: stub ActionCable in tests; ensure server config in prod.
+
+## Status
+- [x] Initialization complete
+- [x] Planning complete
+- [ ] Technology validation complete (no new tech required)
+- [ ] Implementation in progress
+
+## Creative Phases Required
+- Architecture: No (covered by plan)  
+- UI/UX: No  
+- Algorithm: No
+
+## Mode Transition
+NEXT RECOMMENDED MODE: IMPLEMENT MODE
+
 # Task: Browser & Telegram Notifications, Symbol Validation, Current Price, Dark Theme
 
 ## Description
