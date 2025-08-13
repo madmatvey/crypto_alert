@@ -22,3 +22,4 @@
 - VAN QA: PASS — E2E user stories plan validated; Capybara/Selenium configured; test suite green at 2025-08-13T10:38:08Z
 - Plan: Added UX redirect-after-create plan to tasks.md (redirect to index on success) at 2025-08-13T10:46:27Z
 - VAN QA: All validation checks passed at 2025-08-13T10:49:44Z
+- Plan: Added user-friendly channel forms with pre-save checks plan at 2025-08-13T11:10:20Z

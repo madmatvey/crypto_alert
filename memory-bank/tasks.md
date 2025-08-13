@@ -212,3 +212,55 @@ Type: Feature
 - Risks/Notes
   - Turbo Drive handles redirects after POST (303) — should work without extra JS
   - If Turbo Stream templates remain, ensure they are not selected on create to avoid bypassing redirect
+
+## User-Friendly Channel Forms & Pre-Save Checks (Plan)
+
+- Objectives
+  - Replace JSON textarea with typed inputs per channel kind
+  - Provide a "Check settings" action before saving to validate connectivity/correctness
+
+- UX/Forms
+  - `notification_channels/_form.html.erb`:
+    - Show/hide field groups based on `Kind`
+      - log_file: `path` (text), `format` (select: plain, json)
+      - email: `to` (email), `subject_template` (text)
+      - browser: no fields (info note only)
+      - telegram: `bot_token` (password), `chat_id` (text)
+    - Inputs use nested names: `notification_channel[settings][key]` (no JSON textarea)
+    - Add a "Check settings" button (no persist) that runs validation and renders inline result (Turbo Frame)
+
+- Controller/Params
+  - Permit nested `settings` hash: `params.require(:notification_channel).permit(:kind, :enabled, settings: {})`
+  - Remove `settings_json` parsing
+  - Keep redirects to index on create/update success
+
+- Validation/Services
+  - Add `NotificationChannels::Validator` service with `validate(kind:, settings:)` → result struct `{ok:, message:}`
+    - log_file: ensure directory exists or writable file path
+    - email: validate email format; no network
+    - browser: always ok
+    - telegram: lightweight API probe for token via `getMe` (no message send); validate `chat_id` numeric
+  - Model validations remain for presence/format (telegram), extend log_file path presence when kind == log_file
+
+- Routes/Actions
+  - `POST /notification_channels/check` → `NotificationChannelsController#check`
+    - Accepts `kind` + `settings`, calls Validator, responds via Turbo Stream to update a `#check_result` frame
+
+- Turbo/Stimulus
+  - Add `channel-form` Stimulus controller to toggle field groups on `Kind` change and submit check via fetch/Turbo
+
+- Tests
+  - Service spec: `NotificationChannels::Validator`
+  - Controller/request spec: `POST /notification_channels/check` returns ok/fail
+  - System specs:
+    - Forms show correct fields per kind when switching Kind select
+    - "Check settings" shows success/failure inline (telegram ok stubbed, log_file path invalid shows error)
+    - Create/update flows still redirect to index with flash
+
+- Risks/Notes
+  - Telegram probe requires network; stub in tests; in dev, handle timeouts gracefully and show friendly message
+  - Do not enable token/chat_id live checks in production without consent; keep the check action explicit (button-initiated)
+  - Backward compatibility: migrate away from JSON textarea without breaking existing records
+
+- Rollout
+  - Implement behind a small feature switch in view if needed; enable in dev/test first
