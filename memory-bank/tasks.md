@@ -16,15 +16,15 @@ Type: Feature
 - Lint/Test: RuboCop, RSpec
 
 ## Technology Validation Checkpoints
-- [ ] Turbo Streams broadcast/subscribe path defined
-- [ ] Stimulus controller for Notification API hooked to stream target
+- [x] Turbo Streams broadcast/subscribe path defined
+- [x] Stimulus controller for Notification API hooked to stream target
 - [ ] Telegram HTTP call (Faraday) verified with stub
 - [ ] No additional gems required; config works in dev/test
 
 ## Status
 - [x] Initialization complete
 - [x] Planning complete
-- [ ] Creative complete
+- [x] Creative complete
 - [ ] Technology validation complete
 - [ ] Implementation complete
 - [ ] Reflection complete
@@ -68,7 +68,11 @@ Type: Feature
 
 ## Creative Phases Required
 - UI/UX: Dark theme palette, button/table styling, notification behavior copy
+  - Doc: memory-bank/creative/creative-uiux-dark-theme-and-browser-notifications.md
 - Architecture: Naming for streams/Stimulus events (lightweight)
+  - Doc: memory-bank/creative/creative-architecture-browser-notifications.md
+- Data Model: Telegram channel settings and notifier
+  - Doc: memory-bank/creative/creative-data-model-telegram-channel-settings.md
 
 ## Dependencies
 - Reuse: Faraday, Turbo/Stimulus (no new gems)
