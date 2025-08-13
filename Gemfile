@@ -44,7 +44,7 @@ gem "thruster", require: false
 # Sidekiq for job processing
 gem "sidekiq", "~> 7.3"
 # Cron-like scheduling for Sidekiq
-gem "sidekiq-cron", "~> 1.12"
+gem "sidekiq-cron", "~> 2.3"
 # Redis client library (used by Rails and Sidekiq)
 gem "redis", "~> 5.0"
 
