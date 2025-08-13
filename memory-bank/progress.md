@@ -26,3 +26,9 @@
 - VAN QA: All validation checks passed at 2025-08-13T11:47:18Z
 - Reflection: Completed for browser/telegram notifications, validation, current price, dark theme at 2025-08-13T12:49:27Z
 - Archive: Completed browser/telegram notifications task at 2025-08-13T12:50:15Z
+- **TASK COMPLETED:** Notification Refactoring to Sidekiq Workers at 2025-08-13T17:15:00Z
+  - Archive: `memory-bank/reflection/reflection-notification-refactor.md`
+  - Tests: 49 examples, 0 failures
+  - Linting: Clean (no offenses)
+  - Security: Clean (0 warnings)
+  - All requirements met: workers created, services extracted, controllers/models thinned

@@ -2,6 +2,15 @@
 
 A Rails 8 application to create crypto price alerts, manage notification channels, and dispatch notifications when thresholds are crossed. Prices are fetched from Binance. Background jobs use Sidekiq + Redis.
 
+## Alerts
+![alerts_screen](public/alerts_screen.png)
+
+## Sidekiq Workers (Sidekiq UI)
+![sidekiq_workers_screen](public/sidekiq_workers_screen.png)
+
+## Screencast Tests
+![screencast_tests](public/screencast_tests.gif)
+
 ## Prerequisites
 - Ruby 3.4.x
 - PostgreSQL 14+
