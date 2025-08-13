@@ -189,3 +189,26 @@ Type: Feature
 - Non-flaky Strategy
   - Prefer assertions on persisted records (AlertNotification), mail deliveries, and file content over transient DOM for browser notifications
   - Use Capybara’s waiting matchers for UI steps; avoid racing with ActionCable by deferring UI assertions until after worker run
+
+## UX Redirect After Create (Plan)
+
+- Scope
+  - After successful create, redirect users to index pages for user-visible resources:
+    - Alerts → `alerts_path`
+    - Notification Channels → `notification_channels_path`
+
+- Changes
+  - `AlertsController#create`: change HTML success path to `redirect_to alerts_path, notice: "Alert was successfully created."`
+  - `NotificationChannelsController#create`: change HTML success path to `redirect_to notification_channels_path, notice: "Channel was successfully created."`
+  - Keep JSON responses as-is
+  - Re-evaluate `create.turbo_stream.erb` for both resources:
+    - Prefer standard redirect over Turbo Stream append for creation flows initiated from forms
+    - Keep Turbo Streams for other realtime updates if needed
+
+- Tests (update system specs)
+  - Alerts system spec: after create, expect `have_current_path(alerts_path)` and flash to be visible
+  - Notification Channels system spec: after create, expect `have_current_path(notification_channels_path)` and flash
+
+- Risks/Notes
+  - Turbo Drive handles redirects after POST (303) — should work without extra JS
+  - If Turbo Stream templates remain, ensure they are not selected on create to avoid bypassing redirect

@@ -20,3 +20,5 @@
 - Plan QA (System Tests): PASS — scenarios, setup, files, stubbing, and acceptance criteria documented; proceed to IMPLEMENT at 2025-08-13T10:26:55Z
 - Plan: Added E2E User Stories test plan (channels→alerts→notifications) to tasks.md at 2025-08-13T10:37:14Z
 - VAN QA: PASS — E2E user stories plan validated; Capybara/Selenium configured; test suite green at 2025-08-13T10:38:08Z
+- Plan: Added UX redirect-after-create plan to tasks.md (redirect to index on success) at 2025-08-13T10:46:27Z
+- VAN QA: All validation checks passed at 2025-08-13T10:49:44Z
