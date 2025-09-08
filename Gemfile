@@ -76,7 +76,7 @@ group :test do
   gem "selenium-webdriver"
 
   # Factories and test data
-  gem "factory_bot_rails", "~> 6.4"
+  gem "factory_bot_rails", "~> 6.5"
   gem "faker", "~> 3.4"
   gem "shoulda-matchers", "~> 6.4"
 end
